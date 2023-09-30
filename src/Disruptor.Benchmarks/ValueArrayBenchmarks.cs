@@ -4,8 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using BenchmarkDotNet.Attributes;
 using Disruptor.Util;
-using InlineIL;
-using static InlineIL.IL.Emit;
 
 namespace Disruptor.Benchmarks;
 
@@ -81,7 +79,7 @@ public class ValueArrayBenchmarks : IDisposable
     [MethodImpl(MethodImplOptions.NoInlining)]
     public int ReadOneIL()
     {
-        return InternalUtil.ReadValue<Event>(_array, Index).Value;
+        return _array[Index].Value;
     }
 
     [Benchmark]

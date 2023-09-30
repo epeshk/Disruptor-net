@@ -8,7 +8,7 @@ namespace Disruptor.PerfTests.Sequenced;
 
 /// <summary>
 /// Sequence a series of events from multiple publishers going to one event processor.
-/// Use batch publication (<see cref="RingBuffer.Next(int)"/>.
+/// Use batch publication (<see cref="RingBufferBase.Next(int)"/>.
 ///
 /// +----+
 /// | P1 |------+

@@ -20,20 +20,14 @@ namespace Disruptor;
 public readonly struct EventBatch<T>
     where T : class
 {
-    private readonly object _array;
+    private readonly T[] _array;
     private readonly int _beginIndex;
     private readonly int _length;
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal EventBatch(object array, int beginIndex, int length)
+    public EventBatch(T[]? array, int beginIndex, int length)
     {
-        _array = array;
-        _beginIndex = beginIndex;
-        _length = length;
-    }
+        array ??= Array.Empty<T>();
 
-    public EventBatch(T[] array, int beginIndex, int length)
-    {
         if ((uint)beginIndex > (uint)array.Length || (uint)length > (uint)(array.Length - beginIndex))
             ThrowHelper.ThrowArgumentOutOfRangeException();
 
@@ -61,7 +55,7 @@ public readonly struct EventBatch<T>
             if ((uint)index >= (uint)_length)
                 ThrowHelper.ThrowArgumentOutOfRangeException();
 
-            return InternalUtil.Read<T>(_array, _beginIndex + index);
+            return _array[_beginIndex + index];
         }
     }
 
@@ -69,7 +63,7 @@ public readonly struct EventBatch<T>
     public Enumerator GetEnumerator() => new(_array, _beginIndex, _beginIndex + _length);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public ReadOnlySpan<T> AsSpan() => InternalUtil.ReadSpan<T>(_array, _beginIndex, _length);
+    public ReadOnlySpan<T> AsSpan() => _array.AsSpan(_beginIndex, _length);
 
     public IEnumerable<T> AsEnumerable()
     {
@@ -97,12 +91,12 @@ public readonly struct EventBatch<T>
 
     public struct Enumerator
     {
-        private readonly object _array;
+        private readonly T[] _array;
         private readonly int _endIndex;
         private int _index;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public Enumerator(object array, int index, int endIndex)
+        public Enumerator(T[] array, int index, int endIndex)
         {
             _array = array;
             _index = index - 1;
@@ -125,7 +119,7 @@ public readonly struct EventBatch<T>
         public readonly T Current
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => InternalUtil.Read<T>(_array, _index);
+            get => _array[_index];
         }
     }
 }

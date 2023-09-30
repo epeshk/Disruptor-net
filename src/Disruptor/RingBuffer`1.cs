@@ -11,7 +11,7 @@ namespace Disruptor;
 /// an event being exchanged between event producer and <see cref="IEventProcessor"/>s.
 /// </summary>
 /// <typeparam name="T">implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
-public sealed class RingBuffer<T> : RingBuffer, IDataProvider<T>, ISequenced
+public sealed class RingBuffer<T> : RingBufferBase<T>, IDataProvider<T>, ISequenced
     where T : class
 {
     /// <summary>
@@ -21,14 +21,14 @@ public sealed class RingBuffer<T> : RingBuffer, IDataProvider<T>, ISequenced
     /// <param name="sequencer">sequencer to handle the ordering of events moving through the RingBuffer.</param>
     /// <exception cref="ArgumentException">if bufferSize is less than 1 or not a power of 2</exception>
     public RingBuffer(Func<T> eventFactory, ISequencer sequencer)
-        : base(sequencer, typeof(T), _bufferPadRef)
+        : base(sequencer, _bufferPadRef)
     {
         Fill(eventFactory);
     }
 
     private void Fill(Func<T> eventFactory)
     {
-        var entries = (T[])_entries;
+        var entries = _entries;
         for (int i = 0; i < _bufferSize; i++)
         {
             entries[_bufferPadRef + i] = eventFactory();
@@ -149,7 +149,7 @@ public sealed class RingBuffer<T> : RingBuffer, IDataProvider<T>, ISequenced
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            return InternalUtil.Read<T>(_entries, _bufferPadRef + (int)(sequence & _indexMask));
+            return _entries[_bufferPadRef + (int)(sequence & _indexMask)];
         }
     }
 
@@ -162,7 +162,7 @@ public sealed class RingBuffer<T> : RingBuffer, IDataProvider<T>, ISequenced
             var index2 = (int)(hi & _indexMask);
             var length = index1 <= index2 ? (1 + index2 - index1) : (_bufferSize - index1);
 
-            return InternalUtil.ReadSpan<T>(_entries, _bufferPadRef + index1, length);
+            return _entries.AsSpan(_bufferPadRef + index1, length);
         }
     }
 

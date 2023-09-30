@@ -64,7 +64,7 @@ public class StructProxyBenchmarks
         public ReadOnlySpan<Event> this[long lo, long hi]
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get { return InternalUtil.ReadSpan<Event>(_dataArray, 0, 1); }
+            get { return _dataArray.AsSpan(0, 1); }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

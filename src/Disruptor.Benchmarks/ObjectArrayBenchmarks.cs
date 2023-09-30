@@ -31,14 +31,14 @@ public class ObjectArrayBenchmarks
     [Benchmark]
     public Event ReadOneIL()
     {
-        return InternalUtil.Read<Event>(_array, NextSequence());
+        return _array[NextSequence()];
     }
 
     [Benchmark]
     public ReadOnlySpan<Event> ReadSpanIL()
     {
         var sequence = NextSequence();
-        return InternalUtil.ReadSpan<Event>(_array, sequence, sequence);
+        return _array.AsSpan(sequence, sequence);
     }
 
     private int NextSequence() => _index++ & _mask;

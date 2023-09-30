@@ -6,7 +6,7 @@ namespace Disruptor.Samples.Wiki.PublicationOptions;
 
 public static class PublicationExtensions
 {
-    public static long Next(this RingBuffer ringBuffer, TimeSpan timeout)
+    public static long Next<T>(this RingBufferBase<T> ringBuffer, TimeSpan timeout)
     {
         var stopwatch = Stopwatch.StartNew();
         var spinWait = new SpinWait();
@@ -15,7 +15,7 @@ public static class PublicationExtensions
         {
             if (ringBuffer.TryNext(out var sequence))
                 return sequence;
-                
+
             spinWait.SpinOnce();
         }
         while (stopwatch.Elapsed < timeout);

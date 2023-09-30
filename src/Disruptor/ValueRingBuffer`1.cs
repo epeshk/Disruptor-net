@@ -11,10 +11,10 @@ namespace Disruptor;
 /// an event being exchanged between event producer and <see cref="IEventProcessor"/>s.
 /// </summary>
 /// <typeparam name="T">implementation storing the data for sharing during exchange or parallel coordination of an event.</typeparam>
-public sealed class ValueRingBuffer<T> : RingBuffer, IValueRingBuffer<T>
+public sealed class ValueRingBuffer<T> : RingBufferBase<T>, IValueRingBuffer<T>
     where T : struct
 {
-    private static readonly int _bufferPad = InternalUtil.GetRingBufferPaddingEventCount(InternalUtil.SizeOf<T>());
+    private static readonly int _bufferPad = InternalUtil.GetRingBufferPaddingEventCount(Unsafe.SizeOf<T>());
 
     /// <summary>
     /// Construct a ValueRingBuffer with the full option set.
@@ -33,7 +33,7 @@ public sealed class ValueRingBuffer<T> : RingBuffer, IValueRingBuffer<T>
     /// <param name="sequencer">sequencer to handle the ordering of events moving through the ring buffer.</param>
     /// <exception cref="ArgumentException">if bufferSize is less than 1 or not a power of 2</exception>
     public ValueRingBuffer(Func<T> eventFactory, ISequencer sequencer)
-        : base(sequencer, typeof(T), _bufferPad)
+        : base(sequencer, _bufferPad)
     {
         Fill(eventFactory);
     }
@@ -160,7 +160,7 @@ public sealed class ValueRingBuffer<T> : RingBuffer, IValueRingBuffer<T>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get
         {
-            return ref InternalUtil.ReadValue<T>(_entries, _bufferPad + (int)(sequence & _indexMask));
+            return ref _entries[_bufferPad + (int)(sequence & _indexMask)];
         }
     }
 

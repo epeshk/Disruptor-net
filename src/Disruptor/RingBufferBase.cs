@@ -12,35 +12,49 @@ namespace Disruptor;
 /// </summary>
 /// <seealso cref="RingBuffer{T}"/>
 /// <seealso cref="ValueRingBuffer{T}"/>.
-[StructLayout(LayoutKind.Explicit, Size = DefaultPadding * 2 + 40)]
-public abstract class RingBuffer : ICursored
+[StructLayout(LayoutKind.Sequential)]
+public abstract class RingBufferBase<T> : ICursored
 {
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Padding32
+    {
+#pragma warning disable CS0169 // Field is never used
+        private long a, b, c, d;
+#pragma warning restore CS0169 // Field is never used
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct Padding56
+    {
+#pragma warning disable CS0169 // Field is never used
+        private Padding32 a;
+        private long b, c, d;
+#pragma warning restore CS0169 // Field is never used
+    }
+
     protected static readonly int _bufferPadRef = InternalUtil.GetRingBufferPaddingEventCount(IntPtr.Size);
+#pragma warning disable CS0169 // Field is never used
+    private Padding56 _0;
+#pragma warning restore CS0169 // Field is never used
 
-    // padding: DefaultPadding
+    protected T[] _entries;
 
-    [FieldOffset(DefaultPadding)]
-    protected object _entries;
-
-    [FieldOffset(DefaultPadding + 8)]
     protected long _indexMask;
 
-    [FieldOffset(DefaultPadding + 16)]
     protected int _bufferSize;
 
-    [FieldOffset(DefaultPadding + 24)]
     protected SequencerDispatcher _sequencerDispatcher; // includes 7 bytes of padding
 
-    // padding: DefaultPadding
-
+#pragma warning disable CS0169 // Field is never used
+    private Padding56 _1;
+#pragma warning restore CS0169 // Field is never used
     /// <summary>
     /// Construct a RingBuffer with the full option set.
     /// </summary>
     /// <param name="sequencer">sequencer to handle the ordering of events moving through the RingBuffer.</param>
-    /// <param name="eventType">type of ring buffer events</param>
     /// <param name="bufferPad">ring buffer padding  as a number of events</param>
     /// <exception cref="ArgumentException">if bufferSize is less than 1 or not a power of 2</exception>
-    protected RingBuffer(ISequencer sequencer, Type eventType, int bufferPad)
+    protected RingBufferBase(ISequencer sequencer, int bufferPad)
     {
         _sequencerDispatcher = new SequencerDispatcher(sequencer);
         _bufferSize = sequencer.BufferSize;
@@ -54,7 +68,7 @@ public abstract class RingBuffer : ICursored
             throw new ArgumentException("bufferSize must be a power of 2");
         }
 
-        _entries = Array.CreateInstance(eventType, _bufferSize + 2 * bufferPad);
+        _entries = new T[_bufferSize + 2 * bufferPad];
         _indexMask = _bufferSize - 1;
     }
 

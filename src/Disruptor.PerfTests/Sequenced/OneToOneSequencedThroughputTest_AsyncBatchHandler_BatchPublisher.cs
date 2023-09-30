@@ -7,7 +7,7 @@ namespace Disruptor.PerfTests.Sequenced;
 
 /// <summary>
 /// Unicast a series of items between 1 publisher and 1 event processor.
-/// Use batch publication (<see cref="RingBuffer.Next(int)"/>.
+/// Use batch publication (<see cref="RingBufferBase.Next(int)"/>.
 /// Use <seealso cref="IAsyncBatchEventHandler{T}"/>.
 ///
 /// +----+    +-----+

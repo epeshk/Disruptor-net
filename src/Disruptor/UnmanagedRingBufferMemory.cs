@@ -2,7 +2,6 @@ using System;
 using System.Runtime.InteropServices;
 using Disruptor.Util;
 using Microsoft.Win32.SafeHandles;
-using static InlineIL.IL.Emit;
 
 namespace Disruptor;
 
@@ -95,13 +94,14 @@ public class UnmanagedRingBufferMemory : IDisposable
         return memory;
     }
 
-    private static void InitBlock(IntPtr startAddress, byte value, uint byteCount)
+    private static unsafe void InitBlock(IntPtr startAddress, byte value, uint byteCount)
     {
-        Ldarg(nameof(startAddress));
-        Ldarg(nameof(value));
-        Ldarg(nameof(byteCount));
-        Unaligned(1);
-        Initblk();
+        if (byteCount > int.MaxValue)
+        {
+            new Span<byte>((void*)startAddress, int.MaxValue).Fill(value);
+            byteCount -= int.MaxValue;
+        }
+        new Span<byte>((void*)startAddress, (int)byteCount).Fill(value);
     }
 
     private class AllocSafeHandle : SafeHandleZeroOrMinusOneIsInvalid

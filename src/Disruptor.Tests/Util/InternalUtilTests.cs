@@ -37,7 +37,7 @@ public class InternalUtilTests
 
         for (var i = 0; i < array.Length; i++)
         {
-            var evt = InternalUtil.Read<StubEvent>(array, i);
+            var evt = array[i];
 
             Assert.AreEqual(new StubEvent(i), evt);
         }
@@ -52,7 +52,7 @@ public class InternalUtilTests
 
         for (var i = 0; i < array.Length - blockSize + 1; i++)
         {
-            var block = InternalUtil.ReadSpan<StubEvent>(array, i, blockSize);
+            var block = array.AsSpan(i, blockSize);
 
             Assert.AreEqual(blockSize, block.Length);
             for (var dataIndex = 0; dataIndex < blockSize; dataIndex++)
@@ -69,7 +69,7 @@ public class InternalUtilTests
 
         for (var i = 0; i < array.Length; i++)
         {
-            var evt = InternalUtil.ReadValue<StubValueEvent>(array, i);
+            var evt = array[i];
 
             Assert.AreEqual(new StubValueEvent(i), evt);
         }
@@ -82,7 +82,7 @@ public class InternalUtilTests
 
         for (var i = 0; i < array.Length; i++)
         {
-            var evt = InternalUtil.ReadValue<UnalignedEvent>(array, i);
+            var evt = array[i];
 
             Assert.AreEqual(new UnalignedEvent(i), evt);
         }
@@ -110,13 +110,13 @@ public class InternalUtilTests
 
         for (var i = 0; i < array.Length; i++)
         {
-            ref var evt = ref InternalUtil.ReadValue<StubValueEvent>(array, i);
+            ref var evt = ref array[i];
             evt.TestString = evt.Value.ToString();
         }
 
         for (var i = 0; i < array.Length; i++)
         {
-            var evt = InternalUtil.ReadValue<StubValueEvent>(array, i);
+            var evt = array[i];
 
             Assert.AreEqual(evt.Value.ToString(), evt.TestString);
         }
@@ -129,13 +129,13 @@ public class InternalUtilTests
 
         for (var i = 0; i < array.Length; i++)
         {
-            ref var evt = ref InternalUtil.ReadValue<UnalignedEvent>(array, i);
+            ref var evt = ref array[i];
             evt.TestString = evt.Value.ToString();
         }
 
         for (var i = 0; i < array.Length; i++)
         {
-            var evt = InternalUtil.ReadValue<UnalignedEvent>(array, i);
+            var evt = array[i];
 
             Assert.AreEqual(evt.Value.ToString(), evt.TestString);
         }
@@ -176,42 +176,5 @@ public class InternalUtilTests
 
         [FieldOffset(11)]
         public int Value;
-    }
-
-    [Test]
-    public void ShouldRecomputeArrayDataOffsetWithInternalUtil()
-    {
-        Console.WriteLine(Environment.Is64BitProcess ? "64BIT" : "32BIT");
-
-        Assert.AreEqual(InternalUtil.ComputeArrayDataOffset(), InternalUtil.ArrayDataOffset);
-    }
-
-    [Test]
-    public void ShouldRecomputeArrayDataOffsetWithMemoryMarshal()
-    {
-        Console.WriteLine(Environment.Is64BitProcess ? "64BIT" : "32BIT");
-
-        Assert.AreEqual(ComputeArrayDataOffsetWithMemoryMarshal(), InternalUtil.ArrayDataOffset);
-    }
-
-    private static int ComputeArrayDataOffsetWithMemoryMarshal()
-    {
-        var methodPointerSize = IntPtr.Size;
-
-        var array = new object[1];
-
-        ref var arrayStart = ref GetArrayStartReference(array);
-        ref var firstElement = ref array[0];
-
-        return methodPointerSize + Unsafe.ByteOffset(ref arrayStart, ref firstElement).ToInt32();
-    }
-
-    private static ref T GetArrayStartReference<T>(T[] array)
-        => ref Unsafe.As<byte, T>(ref Unsafe.As<ByteContainer>(array).Data);
-
-    // ReSharper disable once ClassNeverInstantiated.Local
-    private class ByteContainer
-    {
-        public byte Data;
     }
 }
